@@ -1,30 +1,97 @@
-import { SearchBar } from "./SearchBar/SearchBar";
-import { ImageGallery } from "./ImageGallery/ImageGallery";
-import { Component } from "react";
-import axios from "axios";
+import { SearchBar } from './SearchBar/SearchBar';
+import { ImageGallery } from './ImageGallery/ImageGallery';
+import { Component } from 'react';
+import { FetchImages } from './services/FetchImages';
+import { Button } from './Button/Button';
+import { Loader } from './Loader/Loader';
+import { ModalWindow } from './Modal/Modal';
+import { Notify } from 'notiflix/build/notiflix-notify-aio';
 
 export class App extends Component {
-
   state = {
     images: [],
+    query: null,
+    page: 1,
+    per_page: 12,
+    error: null,
+    loader: false,
+    largeImageURL: '',
   };
 
-  async componentDidMount() {
-    const key = '30986125-b49381751b2e2f4b8e31e6edc';
-    axios.defaults.baseURL = 'https://pixabay.com/api/'
-    const response = await axios.get(`?key=${key}`);
-    this.setState({ images: response.data.hits });
+  componentDidUpdate(prevProps, previousState) {
+    if (
+      this.state.query !== previousState.query ||
+      this.state.page !== previousState.page
+    ) {
+      this.onFetchData();
+    }
   }
 
-  render () {
- 
+  onFetchData = async () => {
+    this.setState({
+      loader: true,
+    });
+
+    try {
+      const { query, page, per_page } = this.state;
+      const images = await FetchImages(query, page, per_page);
+
+      this.setState(prevState => ({
+        images: [...prevState.images, ...images],
+      }));
+    } catch (error) {
+      this.setState({ error });
+    } finally {
+      this.setState({
+        loader: false,
+      });
+    }
+  };
+
+  onLoadMore = () => {
+    this.setState(previousState => ({
+      page: previousState.page + 1,
+    }));
+  };
+
+  handleSubmit = e => {
+    e.preventDefault();
+    const target = e.target.elements.query.value;
+    if (this.state.query === target) {
+      return;
+    }
+    Notify.success(`Hoooray! We have found your pictures!`);
+    this.setState({
+      images: [],
+      query: target,
+      page: 1,
+      per_page: 12,
+    });
+  };
+
+  onImageClick = largeImageURL => {
+    this.setState({ largeImageURL });
+  };
+
+  render() {
     return (
       <>
-        <SearchBar/>
-        <ImageGallery images={this.state.images}/>
-          
-        
+        <SearchBar handleSubmit={this.handleSubmit} />
+        <ImageGallery
+          images={this.state.images}
+          onImageClick={this.onImageClick}
+        />
+        {this.state.images.length > 0 ? (
+          <Button onLoadMore={this.onLoadMore} />
+        ) : null}
+        {this.state.loader && <Loader />}
+        {this.state.largeImageURL && (
+          <ModalWindow
+            largeImgUrl={this.state.largeImageURL}
+            onImageClick={this.onImageClick}
+          />
+        )}
       </>
     );
   }
-};
+}
