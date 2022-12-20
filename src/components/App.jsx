@@ -58,15 +58,12 @@ export class App extends Component {
         this.setState({
           showMore: true,
         });
-
-        Notify.success(`Hoooray! We have found ${images.totalHits} pictures!`);
         return;
       }
 
       this.setState({
         showMore: false,
       });
-      Notify.success(`That's all pictures that we have found!`);
       
     } catch (error) {
       this.setState({ error });
@@ -84,6 +81,7 @@ export class App extends Component {
   };
 
   handleSubmit = e => {
+    Notify.success(`Hoooray! We have found your pictures!`);
     this.setState({
       images: [],
       query: e.target.elements.query.value,
