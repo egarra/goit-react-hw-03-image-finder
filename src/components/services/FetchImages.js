@@ -18,5 +18,6 @@ export const FetchImages = async (q, page, per_page) => {
     const response = await axios.get(
         `?key=${key}&q=${q}`, searchParams
     )
-    return response.data.hits
+    
+    return response.data
 }

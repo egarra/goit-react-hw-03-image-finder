@@ -7,11 +7,7 @@ export const ModalWindow = ({ largeImgUrl, onImageClick }) => {
       onImageClick('');
     }
   };
-  window.addEventListener('keydown', e => {
-    if (e.code === 'Escape') {
-      onImageClick('');
-    }
-  });
+  
   return (
     <Backdrop onClick={handleBackdrop}>
       <Modal>

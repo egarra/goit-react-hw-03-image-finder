@@ -6,11 +6,16 @@ import {
   SearchFormInput,
 } from './SearchBar.styled';
 
-export const SearchBar = ({ handleSubmit }) => {
+export const SearchBar = ({ handleSubmit, query }) => {
   return (
     <SearchHeader>
       <SearchForm
         onSubmit={e => {
+          e.preventDefault();
+
+          if (query === e.target.elements.query.value) {
+            return;
+          }
           handleSubmit(e);
         }}
       >

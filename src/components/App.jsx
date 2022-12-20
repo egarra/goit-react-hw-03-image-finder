@@ -16,7 +16,16 @@ export class App extends Component {
     error: null,
     loader: false,
     largeImageURL: '',
+    showMore: false,
   };
+
+  componentDidMount() {
+    window.addEventListener('keydown', this.onCloseModalEsc);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('keydown', this.onCloseModalEsc);
+  }
 
   componentDidUpdate(prevProps, previousState) {
     if (
@@ -27,6 +36,12 @@ export class App extends Component {
     }
   }
 
+  onCloseModalEsc = e => {
+    if (e.code === 'Escape') {
+      this.onImageClick('');
+    }
+  };
+
   onFetchData = async () => {
     this.setState({
       loader: true,
@@ -35,10 +50,24 @@ export class App extends Component {
     try {
       const { query, page, per_page } = this.state;
       const images = await FetchImages(query, page, per_page);
-
       this.setState(prevState => ({
-        images: [...prevState.images, ...images],
+        images: [...prevState.images, ...images.hits],
       }));
+
+      if (this.state.page < Math.ceil(images.totalHits / this.state.per_page)) {
+        this.setState({
+          showMore: true,
+        });
+
+        Notify.success(`Hoooray! We have found ${images.totalHits} pictures!`);
+        return;
+      }
+
+      this.setState({
+        showMore: false,
+      });
+      Notify.success(`That's all pictures that we have found!`);
+      
     } catch (error) {
       this.setState({ error });
     } finally {
@@ -55,15 +84,9 @@ export class App extends Component {
   };
 
   handleSubmit = e => {
-    e.preventDefault();
-    const target = e.target.elements.query.value;
-    if (this.state.query === target) {
-      return;
-    }
-    Notify.success(`Hoooray! We have found your pictures!`);
     this.setState({
       images: [],
-      query: target,
+      query: e.target.elements.query.value,
       page: 1,
       per_page: 12,
     });
@@ -76,14 +99,12 @@ export class App extends Component {
   render() {
     return (
       <>
-        <SearchBar handleSubmit={this.handleSubmit} />
+        <SearchBar handleSubmit={this.handleSubmit} query={this.state.query} />
         <ImageGallery
           images={this.state.images}
           onImageClick={this.onImageClick}
         />
-        {this.state.images.length > 0 ? (
-          <Button onLoadMore={this.onLoadMore} />
-        ) : null}
+        {this.state.showMore && <Button onLoadMore={this.onLoadMore} />}
         {this.state.loader && <Loader />}
         {this.state.largeImageURL && (
           <ModalWindow
