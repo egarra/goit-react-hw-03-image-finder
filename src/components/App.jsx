@@ -19,14 +19,6 @@ export class App extends Component {
     showMore: false,
   };
 
-  componentDidMount() {
-    window.addEventListener('keydown', this.onCloseModalEsc);
-  }
-
-  componentWillUnmount() {
-    window.removeEventListener('keydown', this.onCloseModalEsc);
-  }
-
   componentDidUpdate(prevProps, previousState) {
     if (
       this.state.query !== previousState.query ||
@@ -36,11 +28,7 @@ export class App extends Component {
     }
   }
 
-  onCloseModalEsc = e => {
-    if (e.code === 'Escape') {
-      this.onImageClick('');
-    }
-  };
+  
 
   onFetchData = async () => {
     this.setState({
